@@ -85,7 +85,7 @@ def handle_message(event):
         message = '一覧'
     else:
         city_num = '400040'
-        message = wt.get_weather_info(city_num)
+        message = get_weather_info(city_num)
 
     line_bot_api.reply_message(
         event.reply_token,
