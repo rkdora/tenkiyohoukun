@@ -10,7 +10,7 @@ from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage
 )
 import os
-import scrape as sc
+import weather as wt
 
 app = Flask(__name__)
 
@@ -38,7 +38,8 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     # message = event.message.text
-    message = sc.get_weather_info('400040')
+    city_num = '400040'
+    message = wt.get_weather_info(city_num)
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=message))
