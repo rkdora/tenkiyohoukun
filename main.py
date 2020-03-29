@@ -83,7 +83,7 @@ def handle_message(event):
     text = event.message.text
 
     if text in '登録':
-        return register_city('久留米', '400040')
+        message = register_city('久留米', '400040')
     else:
         city_num = '400040'
         message = get_weather_info(city_num)
