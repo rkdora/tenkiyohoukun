@@ -30,9 +30,13 @@ def get_weather_info(userMessage):
     city_params = {'city': '400040'}
     data = rq.get(url, params=city_params)
     content = json.loads(data.text)
-    print(content)
+
+    content_title = format(content['title'])
     content_text = format(content['description']['text'])
-    return content_text
+    content_time = format(content['description']['publicTime'])\
+                    .replace('T', ' ').replace('-', '/')[:-5]
+
+    return content_title + '\n\n' + content_text + '\n\n最終更新日時：' + content_time
 
 @app.route("/callback", methods=['POST'])
 def callback():
