@@ -12,14 +12,27 @@ from linebot.models import (
 import os
 import random
 
+# API用
+import requests as rq
+import json
+
 app = Flask(__name__)
 
-#環境変数取得
+# 環境変数取得
 LINE_CHANNEL_ACCESS_TOKEN = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
 LINE_CHANNEL_SECRET = os.environ["LINE_CHANNEL_SECRET"]
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
+
+def get_weather_info(userMessage):
+    url = 'http://weather.livedoor.com/forecast/webservice/json/v1?'
+    city_params = {'city': '400040'}
+    data = rq.get(url, params=city_params)
+    content = json.loads(data.text)
+    print(content)
+    content_text = format(content['description']['text'])
+    return content_text
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -41,7 +54,9 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    message = event.message.text
+    # オウム
+    # message = event.message.text
+    message = get_weather_info(event.message.text)
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=message))
