@@ -52,14 +52,16 @@ class City(db.Model):
 
 def register_city(city_name, city_num):
     all_city = db.session.query(City).filter(City.name==city_name).all()
-    print(all_city)
-    print(len(all_city))
 
-    # reg = City(city_name, city_num)
-    # db.session.add(reg)
-    # db.session.commit()
+    if len(all_city) == 0:
+        reg = City(city_name, city_num)
+        db.session.add(reg)
+        db.session.commit()
+        message = '登録しました'
+    else:
+        message = '失敗しました'
 
-
+    return message
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -80,9 +82,8 @@ def callback():
 def handle_message(event):
     text = event.message.text
 
-    if text in '一覧':
-        register_city('久留米', '400040')
-        message = '一覧'
+    if text in '登録':
+        return register_city('久留米', '400040')
     else:
         city_num = '400040'
         message = get_weather_info(city_num)
