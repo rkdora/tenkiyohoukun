@@ -1,5 +1,5 @@
 from flask import Flask, request, abort
-# from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy
 
 from linebot import (
     LineBotApi, WebhookHandler
@@ -18,8 +18,8 @@ import json
 import pickle
 
 app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
-# db = SQLAlchemy(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+db = SQLAlchemy(app)
 
 LINE_CHANNEL_ACCESS_TOKEN = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
 LINE_CHANNEL_SECRET = os.environ["LINE_CHANNEL_SECRET"]
@@ -28,6 +28,8 @@ line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
 city_path = 'city_dict.pickle'
+with open(city_path, mode='rb') as f:
+    city_dict = pickle.load(f)
 
 def get_weather_info(city_num):
     url = 'http://weather.livedoor.com/forecast/webservice/json/v1?'
@@ -44,28 +46,32 @@ def get_weather_info(city_num):
 
 
 # モデル作成
-# class City(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(80))
-#     num = db.Column(db.String(80))
-#
-#     def __init__(self, name, num):
-#         self.name = name
-#         self.num = num
-#
-#
-# def register_city(city_name, city_num):
-#     all_city = db.session.query(City).filter(City.name==city_name).all()
-#
-#     if len(all_city) == 0:
-#         reg = City(city_name, city_num)
-#         db.session.add(reg)
-#         db.session.commit()
-#         message = '登録しました'
-#     else:
-#         message = '失敗しました'
-#
-#     return message
+class MyCity(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(80))
+    city_id = db.Column(db.String(80))
+
+    def __init__(self, user_id, city_id):
+        self.user_id = user_id
+        self.city_id = city_id
+
+
+def register_mycity(user_id, city_id):
+    my_city = db.session.query(MyCity).filter(MyCity.user_id==user_id).first()
+
+    print('my_city', my_city)
+
+    if my_city:
+        reg = MyCity(user_id, city_id)
+        db.session.add(reg)
+        db.session.commit()
+        message = '登録しました'
+    else:
+        my_city.city_id = city_id
+        db.session.commit()
+        message = '更新しました'
+
+    return message
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -85,12 +91,12 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_message = event.message.text
-    #
-    # if user_message in '登録':
-    #     message = register_city('久留米', '400040')
-    # else:
-    with open(city_path, mode='rb') as f:
-        city_dict = pickle.load(f)
+
+    if user_message in '登録':
+        user_id = event.source.userId
+        print('user_id', user_id)
+        message = register_mycity(user_id, '400040')
+    else:
 
     if  user_message in city_dict:
         message = get_weather_info(city_dict[user_message])
