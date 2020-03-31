@@ -107,16 +107,14 @@ def handle_postback(event):
 def handle_message(event):
     user_message = event.message.text
 
-    city_in_user_message = [city for city in city_list if user_message in city]
-
-    if city_in_user_message:
-        city_id = city_dict[city_in_user_message[0]]
+    if user_message in city_list:
+        city_id = city_dict[user_message]
         text_message = get_weather_info(city_id)
 
         confirm_template_message = TemplateSendMessage(
             alt_text='Confirm template',
             template=ConfirmTemplate(
-                text=city_in_user_message[0] + 'を登録しますか？',
+                text=user_message + 'を登録しますか？',
                 actions=[
                     PostbackAction(
                         label='はい',
@@ -138,7 +136,8 @@ def handle_message(event):
     else:
         my_city = db.session.query(MyCity).filter(MyCity.user_id==event.source.user_id).first()
         if my_city:
-            text_message = get_weather_info(my_city.city_id)
+            text_message1 = get_weather_info(my_city.city_id)
+            text_message2 = '対応地域を知りたい場合は、「一覧」と話しかけてください。'
             messages = [TextSendMessage(text=text_message)]
         else:
             text_message1 = '久留米'
