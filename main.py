@@ -15,6 +15,8 @@ import os
 import requests as rq
 import json
 
+import pickle
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 db = SQLAlchemy(app)
@@ -24,6 +26,8 @@ LINE_CHANNEL_SECRET = os.environ["LINE_CHANNEL_SECRET"]
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
+
+city_path = 'city_list.pickle'
 
 def get_weather_info(city_num):
     url = 'http://weather.livedoor.com/forecast/webservice/json/v1?'
@@ -85,8 +89,13 @@ def handle_message(event):
     if text in '登録':
         message = register_city('久留米', '400040')
     else:
-        city_num = '400040'
-        message = get_weather_info(city_num)
+        with open(path, mode='rb') as f:
+            city_dict = pickle.load(f)
+
+        if city_dict[text]:
+            message = get_weather_info(city_dict[text])
+        else:
+            message = '対応してません。'
 
     line_bot_api.reply_message(
         event.reply_token,
