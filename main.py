@@ -114,7 +114,7 @@ def handle_message(event):
 
         my_city = db.session.query(MyCity).filter(MyCity.user_id==event.source.user_id).first()
         if my_city:
-            text_message = '現在、' + city_dict[mycity.city_id] +'が登録されています。\n' + user_message + 'に更新しますか？'
+            text_message = '現在、' + city_dict[my_city.city_id] +'が登録されています。\n' + user_message + 'に更新しますか？'
         else:
             text_message = user_message + 'を登録しますか？'
 
