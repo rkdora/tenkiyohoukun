@@ -62,14 +62,14 @@ def register_mycity(user_id, city_id):
     print('my_city', my_city)
 
     if my_city:
+        my_city.city_id = city_id
+        db.session.commit()
+        message = '更新しました'
+    else:
         reg = MyCity(user_id, city_id)
         db.session.add(reg)
         db.session.commit()
         message = '登録しました'
-    else:
-        my_city.city_id = city_id
-        db.session.commit()
-        message = '更新しました'
 
     return message
 
