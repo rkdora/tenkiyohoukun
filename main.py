@@ -62,9 +62,10 @@ def register_mycity(user_id, city_id):
     my_city = db.session.query(MyCity).filter(MyCity.user_id==user_id).first()
 
     if my_city:
+        old_my_city_id = my_city.city_id
         my_city.city_id = city_id
         db.session.commit()
-        message = '更新しました'
+        message = '【旧】' + city_dict[old_my_city_id] + '\n【新】' + city_dict[city_id] +'\n更新しました'
     else:
         reg = MyCity(user_id, city_id)
         db.session.add(reg)
@@ -110,10 +111,17 @@ def handle_message(event):
     if user_message in city_dict:
         city_id = city_dict[user_message]
         text_message = get_weather_info(city_id)
+
+        my_city = db.session.query(MyCity).filter(MyCity.user_id==event.source.user_id).first()
+        if my_city:
+            text_message = '現在、' + city_dict[city_id] +'が登録されています。\n' + user_message + 'に更新しますか？'
+        else:
+            text_message = user_message + 'を登録しますか？'
+
         confirm_template_message = TemplateSendMessage(
             alt_text='Confirm template',
             template=ConfirmTemplate(
-                text=user_message + 'を登録しますか?',
+                text=text_message,
                 actions=[
                     PostbackAction(
                         label='はい',
