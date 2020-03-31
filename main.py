@@ -27,7 +27,7 @@ LINE_CHANNEL_SECRET = os.environ["LINE_CHANNEL_SECRET"]
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
-city_path = 'city_list.pickle'
+city_path = 'city_dict.pickle'
 
 def get_weather_info(city_num):
     url = 'http://weather.livedoor.com/forecast/webservice/json/v1?'
