@@ -89,7 +89,7 @@ def handle_message(event):
     if text in '登録':
         message = register_city('久留米', '400040')
     else:
-        with open(path, mode='rb') as f:
+        with open(city_path, mode='rb') as f:
             city_dict = pickle.load(f)
 
         if city_dict[text]:
