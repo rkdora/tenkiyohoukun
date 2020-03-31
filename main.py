@@ -65,14 +65,10 @@ def register_mycity(user_id, city_id):
         old_my_city_id = my_city.city_id
         my_city.city_id = city_id
         db.session.commit()
-        message = '【旧】' + city_dict[old_my_city_id] + '\n【新】' + city_dict[city_id] +'\n更新しました'
     else:
         reg = MyCity(user_id, city_id)
         db.session.add(reg)
         db.session.commit()
-        message = city_dict[city_id] + 'を登録しました'
-
-    return message
 
 
 @app.route("/callback", methods=['POST'])
@@ -97,7 +93,8 @@ def handle_postback(event):
         text_message = 'かしこまりました'
     else:
         user_id = event.source.user_id
-        text_message = register_mycity(user_id, postback_data)
+        register_mycity(user_id, postback_data)
+        text_message = '登録しました'
 
     line_bot_api.reply_message(
         event.reply_token,
@@ -112,16 +109,10 @@ def handle_message(event):
         city_id = city_dict[user_message]
         text_message = get_weather_info(city_id)
 
-        my_city = db.session.query(MyCity).filter(MyCity.user_id==event.source.user_id).first()
-        if my_city:
-            text_message = '現在、' + city_dict[my_city.city_id.text] +'が登録されています。\n' + user_message + 'に更新しますか？'
-        else:
-            text_message = user_message + 'を登録しますか？'
-
         confirm_template_message = TemplateSendMessage(
             alt_text='Confirm template',
             template=ConfirmTemplate(
-                text=text_message,
+                text=user_message + 'を登録しますか？',
                 actions=[
                     PostbackAction(
                         label='はい',
@@ -138,8 +129,15 @@ def handle_message(event):
         )
         messages = [TextSendMessage(text=text_message), confirm_template_message]
     else:
-        text_message = '対応していません。'
-        messages = [TextSendMessage(text=text_message)]
+        my_city = db.session.query(MyCity).filter(MyCity.user_id==user_id).first()
+        if my_city:
+            text_message = get_weather_info(my_city.city_id)
+            messages = [TextSendMessage(text=text_message)]
+        else:
+            text_message1 = '久留米'
+            text_message2 = '上記、入力例です。以下、対応地域一覧です。\n' + '\n'.join(list(city_dict.keys()))
+
+            messages = [TextSendMessage(text=text_message1), TextSendMessage(text=text_message2)]
 
     line_bot_api.reply_message(
         event.reply_token,
