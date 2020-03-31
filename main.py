@@ -8,7 +8,9 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage, TemplateSendMessage, ConfirmTemplate, MessageAction, PostbackAction
+    MessageEvent, TextMessage, TextSendMessage,
+    TemplateSendMessage, ConfirmTemplate, PostbackAction,
+    PostbackEvent
 )
 import os
 
@@ -67,9 +69,10 @@ def register_mycity(user_id, city_id):
         reg = MyCity(user_id, city_id)
         db.session.add(reg)
         db.session.commit()
-        message = '登録しました'
+        message = city_dict[city_id] + 'を登録しました'
 
     return message
+
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -86,38 +89,49 @@ def callback():
     return 'OK'
 
 
+@handler.add(PostbackEvent)
+def handle_postback(event):
+    postback_data = event.postback.data
+    if postback_data == 'no':
+        text_message = 'かしこまりました'
+    else:
+        user_id = event.source.user_id
+        text_message = register_mycity(user_id, postback_data)
+
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=text_message))
+
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_message = event.message.text
 
-    if user_message in '登録':
-        user_id = event.source.user_id
-        text_message = register_mycity(user_id, '400040')
-        messages = [TextSendMessage(text=text_message)]
-    else:
-        if user_message in city_dict:
-            text_message = get_weather_info(city_dict[user_message])
-            confirm_template_message = TemplateSendMessage(
-                alt_text='Confirm template',
-                template=ConfirmTemplate(
-                    text=user_message + 'を登録しますか?',
-                    actions=[
-                        PostbackAction(
-                            label='postback',
-                            display_text='postback text',
-                            data='action=buy&itemid=1'
-                        ),
-                        MessageAction(
-                            label='message',
-                            text='message text'
-                        )
-                    ]
-                )
+    if user_message in city_dict:
+        city_id = city_dict[user_message]
+        text_message = get_weather_info(city_id)
+        confirm_template_message = TemplateSendMessage(
+            alt_text='Confirm template',
+            template=ConfirmTemplate(
+                text=user_message + 'を登録しますか?',
+                actions=[
+                    PostbackAction(
+                        label='はい',
+                        display_text='はい',
+                        data=city_id
+                    ),
+                    PostbackAction(
+                        label='いいえ',
+                        display_text='いいえ',
+                        data='no'
+                    )
+                ]
             )
-            messages = [TextSendMessage(text=text_message), confirm_template_message]
-        else:
-            text_message = '対応していません。'
-            messages = [TextSendMessage(text=text_message)]
+        )
+        messages = [TextSendMessage(text=text_message), confirm_template_message]
+    else:
+        text_message = '対応していません。'
+        messages = [TextSendMessage(text=text_message)]
 
     line_bot_api.reply_message(
         event.reply_token,
