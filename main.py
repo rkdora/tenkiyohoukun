@@ -93,7 +93,7 @@ def handle_message(event):
         city_dict = pickle.load(f)
 
     if  user_message in city_dict:
-        message = get_weather_info(city_dict[text])
+        message = get_weather_info(city_dict[user_message])
     else:
         message = '対応していません。'
 
