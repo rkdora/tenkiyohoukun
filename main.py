@@ -33,6 +33,8 @@ city_path = 'city_dict.pickle'
 with open(city_path, mode='rb') as f:
     city_dict = pickle.load(f)
 
+city_list = list(city_dict.keys())
+
 def get_weather_info(city_num):
     url = 'http://weather.livedoor.com/forecast/webservice/json/v1?'
     city_params = {'city': city_num}
@@ -105,14 +107,16 @@ def handle_postback(event):
 def handle_message(event):
     user_message = event.message.text
 
-    if user_message in city_dict:
-        city_id = city_dict[user_message]
+    city_in_user_message = [city for city in city_list if user_message in city]
+
+    if city_in_user_message:
+        city_id = city_dict[city_in_user_message[0]]
         text_message = get_weather_info(city_id)
 
         confirm_template_message = TemplateSendMessage(
             alt_text='Confirm template',
             template=ConfirmTemplate(
-                text=user_message + 'を登録しますか？',
+                text=city_in_user_message[0] + 'を登録しますか？',
                 actions=[
                     PostbackAction(
                         label='はい',
@@ -128,6 +132,9 @@ def handle_message(event):
             )
         )
         messages = [TextSendMessage(text=text_message), confirm_template_message]
+    elif '一覧' in user_message:
+        text_message = '以下、対応地域一覧です。\n' + '\n'.join(city_list)
+        messages = [TextSendMessage(text=text_message)]
     else:
         my_city = db.session.query(MyCity).filter(MyCity.user_id==event.source.user_id).first()
         if my_city:
@@ -135,7 +142,7 @@ def handle_message(event):
             messages = [TextSendMessage(text=text_message)]
         else:
             text_message1 = '久留米'
-            text_message2 = '上記、入力例です。以下、対応地域一覧です。\n' + '\n'.join(list(city_dict.keys()))
+            text_message2 = '上記、入力例です。以下、対応地域一覧です。\n' + '\n'.join(city_list)
 
             messages = [TextSendMessage(text=text_message1), TextSendMessage(text=text_message2)]
 
