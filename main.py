@@ -8,7 +8,7 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage
+    MessageEvent, TextMessage, TextSendMessage, TemplateSendMessage
 )
 import os
 
@@ -59,8 +59,6 @@ class MyCity(db.Model):
 def register_mycity(user_id, city_id):
     my_city = db.session.query(MyCity).filter(MyCity.user_id==user_id).first()
 
-    print('my_city', my_city)
-
     if my_city:
         my_city.city_id = city_id
         db.session.commit()
@@ -94,16 +92,36 @@ def handle_message(event):
 
     if user_message in '登録':
         user_id = event.source.user_id
-        message = register_mycity(user_id, '400040')
+        text_message = register_mycity(user_id, '400040')
+        messages = [TextSendMessage(text=text_message)]
     else:
         if user_message in city_dict:
-            message = get_weather_info(city_dict[user_message])
+            text_message = get_weather_info(city_dict[user_message])
+            confirm_template_message = TemplateSendMessage(
+                alt_text='Confirm template',
+                template=ConfirmTemplate(
+                    text=user_message + 'を登録しますか?',
+                    actions=[
+                        PostbackAction(
+                            label='postback',
+                            display_text='postback text',
+                            data='action=buy&itemid=1'
+                        ),
+                        MessageAction(
+                            label='message',
+                            text='message text'
+                        )
+                    ]
+                )
+            )
+            messages = [TextSendMessage(text=text_message), confirm_template_message]
         else:
-            message = '対応していません。'
+            text_message = '対応していません。'
+            messages = [TextSendMessage(text=text_message)]
 
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=message))
+        messages)
 
 
 if __name__ == "__main__":
