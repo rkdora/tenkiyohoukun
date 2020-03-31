@@ -10,6 +10,8 @@ flask = "*"
 line-bot-sdk = "*"
 flask-sqlalchemy = "*"
 psycopg2 = "*"
+bs4 = "*"
+lxml = "*"
 
 [requires]
 python_version = "3.6"
