@@ -93,10 +93,8 @@ def handle_message(event):
     user_message = event.message.text
 
     if user_message in '登録':
-        print(event)
-        # user_id = event.source.userId
-        # print('user_id', user_id)
-        # message = register_mycity(user_id, '400040')
+        user_id = event['source']['userId']
+        message = register_mycity(user_id, '400040')
     else:
         if user_message in city_dict:
             message = get_weather_info(city_dict[user_message])
