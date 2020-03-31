@@ -84,7 +84,7 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    text = event.message.text
+    user_message = event.message.text
 
     if text in '登録':
         message = register_city('久留米', '400040')
@@ -92,7 +92,7 @@ def handle_message(event):
         with open(city_path, mode='rb') as f:
             city_dict = pickle.load(f)
 
-        if city_dict[text]:
+        if  user_message in city_dict:
             message = get_weather_info(city_dict[text])
         else:
             message = '対応してません。'
