@@ -97,11 +97,10 @@ def handle_message(event):
         print('user_id', user_id)
         message = register_mycity(user_id, '400040')
     else:
-
-    if  user_message in city_dict:
-        message = get_weather_info(city_dict[user_message])
-    else:
-        message = '対応していません。'
+        if user_message in city_dict:
+            message = get_weather_info(city_dict[user_message])
+        else:
+            message = '対応していません。'
 
     line_bot_api.reply_message(
         event.reply_token,
