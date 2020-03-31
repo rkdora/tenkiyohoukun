@@ -138,7 +138,7 @@ def handle_message(event):
         if my_city:
             text_message1 = get_weather_info(my_city.city_id)
             text_message2 = '対応地域を知りたい場合は、「一覧」と話しかけてください。'
-            messages = [TextSendMessage(text=text_message)]
+            messages = [TextSendMessage(text=text_message1), TextSendMessage(text=text_message2)]
         else:
             text_message1 = '久留米'
             text_message2 = '上記、入力例です。以下、対応地域一覧です。\n' + '\n'.join(city_list)
