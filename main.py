@@ -93,7 +93,7 @@ def handle_message(event):
     user_message = event.message.text
 
     if user_message in '登録':
-        user_id = event['source']['userId']
+        user_id = event.source.user_id
         message = register_mycity(user_id, '400040')
     else:
         if user_message in city_dict:
