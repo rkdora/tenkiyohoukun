@@ -86,7 +86,7 @@ def callback():
 def handle_message(event):
     user_message = event.message.text
 
-    if text in '登録':
+    if user_message in '登録':
         message = register_city('久留米', '400040')
     else:
         with open(city_path, mode='rb') as f:
