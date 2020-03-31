@@ -129,7 +129,7 @@ def handle_message(event):
         )
         messages = [TextSendMessage(text=text_message), confirm_template_message]
     else:
-        my_city = db.session.query(MyCity).filter(MyCity.user_id==user_id).first()
+        my_city = db.session.query(MyCity).filter(MyCity.user_id==event.source.user_id).first()
         if my_city:
             text_message = get_weather_info(my_city.city_id)
             messages = [TextSendMessage(text=text_message)]
